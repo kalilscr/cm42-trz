@@ -7,7 +7,7 @@ export default class extends BaseSchema {
     this.schema.createTable(this.tableName, (table) => {
       table.increments('id').index('survivors_id')
 
-      table.string('name', 60).notNullable()
+      table.string('name', 60).notNullable().unique()
       table.integer('age').notNullable()
       table.string('gender').notNullable()
       table.json('last_location').notNullable() // JSON para armazenar latitude e longitude
