@@ -9,7 +9,12 @@ export default class extends BaseSchema {
 
       table.string('name', 30).notNullable()
       table.integer('quantity').notNullable().index('items_quantity')
-      table.integer('survivor_id').unsigned().references('survivors.id').onDelete('CASCADE') // delete post when user is deleted
+      table
+        .integer('survivor_id')
+        .unsigned()
+        .references('survivors.id')
+        .onDelete('CASCADE')
+        .notNullable() // delete post when user is deleted
       table.timestamp('created_at', { useTz: true })
       table.timestamp('updated_at', { useTz: true })
     })
