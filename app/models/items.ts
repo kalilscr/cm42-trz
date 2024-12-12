@@ -13,8 +13,11 @@ export default class Item extends BaseModel {
   @column()
   declare quantity: number
 
+  @column()
+  declare survivorId: number
+
   @belongsTo(() => Survivor)
-  declare user: BelongsTo<typeof Survivor>
+  declare survivor: BelongsTo<typeof Survivor>
 
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime

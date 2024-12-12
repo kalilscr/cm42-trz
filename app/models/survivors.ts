@@ -22,17 +22,14 @@ export default class Survivor extends BaseModel {
     longitude: string
   }
 
-  // @column()
-  // declare latitude: string
-
-  // @column()
-  // declare longitude: string
-
   @column()
   declare infectedFlagCount: number
 
   @column()
   declare isInfected: boolean
+
+  @column()
+  declare canAddItems: boolean
 
   @hasMany(() => Item)
   declare items: HasMany<typeof Item>
