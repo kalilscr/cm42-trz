@@ -8,6 +8,7 @@
 */
 
 import router from '@adonisjs/core/services/router'
+const TradeController = () => import('../app/controllers/trades_controller.ts')
 const ItemsPointsController = () => import('../app/controllers/items_points_controller.ts')
 const SurvivorsController = () => import('../app/controllers/survivors_controller.ts')
 
@@ -21,3 +22,6 @@ router.post('item/point/create', [ItemsPointsController, 'create'])
 router.put('item/point/update', [ItemsPointsController, 'update'])
 router.get('item/point/list', [ItemsPointsController, 'list'])
 router.delete('item/point/delete', [ItemsPointsController, 'delete'])
+
+// trade Controller
+router.post('trade/create', [TradeController, 'create'])
