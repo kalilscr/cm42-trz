@@ -2,22 +2,25 @@ import { inject } from '@adonisjs/core'
 import { SurvivorInterface, UpdateLocationInterface } from '../interfaces/survivor_interface.ts'
 import Survivor from '../models/survivors.ts'
 import ItemsService from './items_service.ts'
-import ItemPoints from '../models/items_points.ts'
+import { ItemMessages } from '../messages/item_message.ts'
 
 @inject()
 export default class SurvivorsService {
   constructor(protected itemsService: ItemsService) {}
 
   async create(payload: SurvivorInterface) {
-    /**
-     * compare if the items received are different types of items points table
-     */
-    const itemsPoints = await ItemPoints.all()
-    const isSubset = payload.items.every((item2) =>
-      itemsPoints.some((item1) => item1['name'] === item2['name'])
-    )
+    // add transactions
+
+    const hasUniqueItems = await this.itemsService.hasUniqueItems(payload.items)
+
+    if (!hasUniqueItems) {
+      throw new Error('Duplicated items not allowed')
+    }
+
+    const isSubset = await this.itemsService.validateItems(payload.items)
+
     if (!isSubset) {
-      throw new Error('one of the items received is not included in the item points table')
+      throw new Error(ItemMessages.ITEM_NOT_VALID)
     }
 
     const survivor = await Survivor.findBy({ name: payload.name })
@@ -37,5 +40,23 @@ export default class SurvivorsService {
     await survivor.merge({ lastLocation }).save()
   }
 
-  async reportContamination() {}
+  async reportContamination(id: number) {
+    const survivor = await Survivor.findByOrFail({ id: id })
+
+    const maxReportsCount = 5
+
+    if (survivor.infectedFlagCount < maxReportsCount) {
+      const count = survivor.infectedFlagCount + 1
+
+      survivor.merge({ infectedFlagCount: count }).save()
+
+      if (count >= maxReportsCount) {
+        survivor.merge({ isInfected: true }).save()
+      }
+    }
+  }
+
+  async kill() {}
+
+  async loot() {}
 }
