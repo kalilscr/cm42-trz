@@ -8,6 +8,7 @@
 */
 
 import router from '@adonisjs/core/services/router'
+const ReportsController = () => import('../app/controllers/reports_controller.ts')
 const TradeController = () => import('../app/controllers/trades_controller.ts')
 const ItemsPointsController = () => import('../app/controllers/items_points_controller.ts')
 const SurvivorsController = () => import('../app/controllers/survivors_controller.ts')
@@ -24,4 +25,10 @@ router.get('item/point/list', [ItemsPointsController, 'list'])
 router.delete('item/point/delete', [ItemsPointsController, 'delete'])
 
 // trade Controller
-router.post('trade/create', [TradeController, 'create'])
+router.post('trade/start', [TradeController, 'performTrade'])
+
+// reports Controller
+router.get('report/infected', [ReportsController, 'getInfectedSurvivors'])
+router.get('report/non-infected', [ReportsController, 'getNonInfectedSurvivors'])
+router.get('report/resources', [ReportsController, 'getAverageResourcesPerSurvivor'])
+router.get('report/lost-points', [ReportsController, 'getLostPoints'])
