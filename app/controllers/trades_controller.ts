@@ -7,7 +7,7 @@ import { createTradeValidator } from '../validators/trade_validator.ts'
 export default class TradeController {
   constructor(protected tradeService: TradeService) {}
 
-  async create({ request }: HttpContext) {
+  async performTrade({ request }: HttpContext) {
     const data = await request.validateUsing(createTradeValidator)
     await this.tradeService.performTrade(
       data.senderId,
