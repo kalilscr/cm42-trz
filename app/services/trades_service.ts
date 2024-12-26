@@ -44,15 +44,6 @@ export default class TradeService {
 
     await this.updateInventory(senderId, senderItems, receiverItems)
     await this.updateInventory(receiverId, receiverItems, senderItems)
-    // const trade1 = senderItems.map((item) => ({
-    //   ...item,
-    //   survivorId: receiverId,
-    // }))
-
-    // const trade2 = receiverItems.map((item) => ({
-    //   ...item,
-    //   survivorId: senderId,
-    // }))
 
     await trx.commit()
     try {
@@ -117,11 +108,6 @@ export default class TradeService {
 
       if (existingItemIndex !== -1) {
         updatedInventory[existingItemIndex].quantity -= tradeItem.quantity
-
-        // //remove item if quantity reaches 0
-        // if (updatedInventory[existingItemIndex].quantity <= 0) {
-        //   updatedInventory.splice(existingItemIndex, 1)
-        // }
       }
     })
     console.log(updatedInventory)
@@ -144,10 +130,6 @@ export default class TradeService {
     })
     console.log(updatedInventory)
 
-    // name: itemName
-    // await Item.query().where({ survivor_id: survivorId }).update({
-    //   updatedInventory,
-    // })
     const trade = updatedInventory.map((item) => ({
       ...item,
       survivorId: survivorId,
@@ -155,12 +137,6 @@ export default class TradeService {
     console.log(trade)
     await Item.updateOrCreateMany(['survivorId', 'name'], trade)
   }
-
-  // async updateReceiverInventory(
-  //   receiverId: number,
-  //   receiverItems: ItemInterface[],
-  //   senderItems: ItemInterface[]
-  // ) {}
 
   calculateTotalPoints(items: ItemInterface[], itemPointMap: Map<string, number>) {
     const total = items.reduce((totalPoints, item) => {
@@ -173,13 +149,3 @@ export default class TradeService {
 
   async validateSurvivors() {}
 }
-
-// await validate_trade(sender_items, receiver_items)
-
-//         # Verify both parties have items before transfer
-//         await check_inventory_availability(sender, sender_items)
-//         await check_inventory_availability(receiver, receiver_items)
-
-//         # Simultaneous inventory update
-//         await update_sender_inventory(sender, sender_items, receiver_items)
-//         await update_receiver_inventory(receiver, receiver_items, sender_items)

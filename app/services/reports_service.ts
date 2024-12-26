@@ -8,11 +8,6 @@ export default class ReportsService {
   constructor(protected tradeService: TradeService) {}
 
   async percentageInfectedSurvivors() {
-    //const infected = await Survivor.findManyBy({ isInfected: true })
-    // const infected: number = await db.rawQuery(
-    //   'SELECT COUNT (is_infected) FROM survivors WHERE is_infected = true'
-    // )
-
     const allSurvivors = await Survivor.all()
 
     let totalCount = 0
@@ -27,7 +22,7 @@ export default class ReportsService {
     })
 
     const infectedSurvivorsPercentage = (100 * infectedCount) / totalCount
-    return `Infected survivors percentage is ${infectedSurvivorsPercentage}` //.toFixed(2)
+    return `Infected survivors percentage is ${infectedSurvivorsPercentage}`
   }
 
   async percentageNonInfectedSurvivors() {
@@ -70,7 +65,6 @@ export default class ReportsService {
     })
 
     return `Average amount of resources per survivor is: ${JSON.stringify(averages, null, 2)}`
-    //return averages
   }
 
   async infectedSurvivorLostPoints() {
