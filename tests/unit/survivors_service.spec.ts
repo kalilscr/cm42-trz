@@ -3,6 +3,7 @@ import SurvivorsService from '../../app/services/survivors_service.ts'
 import ItemsService from '../../app/services/items_service.ts'
 import Survivor from '../../app/models/survivors.ts'
 import { ItemMessages } from '../../app/messages/item_message.ts'
+import { UpdateLocationInterface } from '../../app/interfaces/survivor_interface.ts'
 
 test.group('Survivor Service - Create', (group) => {
   // group.beforeEach(() => {
@@ -17,11 +18,11 @@ test.group('Survivor Service - Create', (group) => {
       lastLocation: { latitude: '10.1234', longitude: '-10.1234' },
       items: [
         {
-          name: 'fiji_water',
+          name: 'FIJI_WATER',
           quantity: 15,
         },
         {
-          name: 'campbell soup',
+          name: 'CAMPBELL_SOUP',
           quantity: 7,
         },
       ],
@@ -34,7 +35,7 @@ test.group('Survivor Service - Create', (group) => {
     itemService.hasUniqueItems = async () => true
     itemService.validateItems = async () => true
     Survivor.findBy = async () => null
-    Survivor.create = async (data) => data
+    Survivor.create = async (data: any) => data
     itemService.add = async () => {}
 
     await survivorService.create(payload)
@@ -115,6 +116,8 @@ test.group('Survivor Service - Create', (group) => {
     const itemService = new ItemsService()
     const survivorService = new SurvivorsService(itemService)
 
+    itemService.hasUniqueItems = async () => true
+    itemService.validateItems = async () => true
     Survivor.findBy = async () => payload
 
     await assert.rejects(() => survivorService.create(payload), 'survivor already exists')
@@ -122,66 +125,173 @@ test.group('Survivor Service - Create', (group) => {
 })
 
 test.group('Survivor Service - Update Location', (group) => {
-  // group.beforeEach(() => {
-  //   // Setup before each test, if needed
-  // })
+  let survivorService: SurvivorsService
+  let itemService = new ItemsService()
 
-  test('should update the last location of the survivor', async ({ assert }) => {
-    const survivor = {
-      name: 'John Doe',
-      lastLocation: { latitude: '10.1234', longitude: '-10.1234' },
-      save: async function () {
-        /* mock save */
-        {
-        }
-      },
-      merge: function (data) {
-        this.lastLocation = data.lastLocation
-      },
+  group.each.setup(() => {
+    survivorService = new SurvivorsService(itemService)
+  })
+
+  test('updateLocation - should update survivor location', async ({ assert }) => {
+    // Arrange
+    const name = 'John Doe'
+    const lastLocation: UpdateLocationInterface = {
+      latitude: '40.7128',
+      longitude: '-74.006',
+    }
+
+    const survivor = new Survivor()
+    survivor.name = name
+    survivor.lastLocation = { latitude: '0', longitude: '0' }
+
+    let savedLocation: UpdateLocationInterface | null = null
+    survivor.merge = function (data) {
+      Object.assign(this, data)
+      return this
+    }
+    survivor.save = async function () {
+      savedLocation = this.lastLocation
+      return this
     }
 
     Survivor.findByOrFail = async () => survivor
 
-    const survivorService = new SurvivorsService(new ItemsService())
-    const newLocation = { latitude: '20.5678', longitude: '-20.5678' }
+    // Act
+    await survivorService.updateLocation(name, lastLocation)
 
-    await survivorService.updateLocation('John Doe', newLocation)
-    assert.deepEqual(survivor.lastLocation, newLocation)
+    // Assert
+    assert.deepEqual(savedLocation, lastLocation)
+  })
+
+  test('updateLocation - should throw error if survivor not found', async ({ assert }) => {
+    // Arrange
+    const name = 'Nonexistent'
+    const lastLocation: UpdateLocationInterface = {
+      latitude: '40.7128',
+      longitude: '-74.0060',
+    }
+
+    Survivor.findByOrFail = async () => {
+      throw new Error('Survivor not found')
+    }
+
+    // Act & Assert
+    await assert.rejects(
+      async () => await survivorService.updateLocation(name, lastLocation),
+      'Survivor not found'
+    )
   })
 })
 
 test.group('Survivor Service - Report Contamination', (group) => {
-  // group.beforeEach(() => {
-  //   // Setup before each test, if needed
-  // })
+  let survivorService: SurvivorsService
+  let itemService = new ItemsService()
 
-  test('should increase the infectedFlagCount and mark as infected if over limit', async ({
-    assert,
-  }) => {
-    const survivor = {
-      id: 1,
-      infectedFlagCount: 3,
-      isInfected: false,
-      save: async function () {
-        /* mock save */
-      },
-      merge: function (data) {
-        if (data.infectedFlagCount) this.infectedFlagCount = data.infectedFlagCount
-        if (data.isInfected !== undefined) this.isInfected = data.isInfected
-      },
+  group.each.setup(() => {
+    survivorService = new SurvivorsService(itemService)
+  })
+  test('reportContamination - should increment infection flag count', async ({ assert }) => {
+    // Arrange
+    const id = 1
+    const survivor = new Survivor()
+    survivor.id = id
+    survivor.infectedFlagCount = 2
+    survivor.isInfected = false
+
+    let savedCount: number | null = null
+    let savedInfectedStatus: boolean | null = null
+    survivor.merge = function (data) {
+      Object.assign(this, data)
+      return this
+    }
+    survivor.save = async function () {
+      savedCount = this.infectedFlagCount
+      savedInfectedStatus = this.isInfected
+      return this
     }
 
     Survivor.findByOrFail = async () => survivor
 
-    const survivorService = new SurvivorsService(new ItemsService())
-    await survivorService.reportContamination(1)
+    // Act
+    await survivorService.reportContamination(id)
 
-    assert.equal(survivor.infectedFlagCount, 4)
-    assert.equal(survivor.isInfected, false)
+    // Assert
+    assert.equal(savedCount, 3)
+    assert.isFalse(savedInfectedStatus)
+  })
 
-    // Simulate another report
-    await survivorService.reportContamination(1)
+  test('reportContamination - should mark survivor as infected after 5 reports', async ({
+    assert,
+  }) => {
+    // Arrange
+    const id = 1
+    const survivor = new Survivor()
+    survivor.id = id
+    survivor.infectedFlagCount = 4
+    survivor.isInfected = false
+
+    let savedCount: number | null = null
+    let savedInfectedStatus: boolean | null = null
+    survivor.merge = function (data) {
+      Object.assign(this, data)
+      return this
+    }
+    survivor.save = async function () {
+      savedCount = this.infectedFlagCount
+      savedInfectedStatus = this.isInfected
+      return this
+    }
+
+    Survivor.findByOrFail = async () => survivor
+
+    // Act
+    await survivorService.reportContamination(id)
+
+    // Assert
+    assert.equal(savedCount, 5)
+    assert.isTrue(savedInfectedStatus)
+  })
+
+  test('reportContamination - should not increment count beyond 5', async ({ assert }) => {
+    // Arrange
+    const id = 1
+    const survivor = new Survivor()
+    survivor.id = id
+    survivor.infectedFlagCount = 5
+    survivor.isInfected = true
+
+    let savedCount: number | null = null
+    survivor.merge = function (data) {
+      Object.assign(this, data)
+      return this
+    }
+    survivor.save = async function () {
+      savedCount = this.infectedFlagCount
+      return this
+    }
+
+    Survivor.findByOrFail = async () => survivor
+
+    // Act
+    await survivorService.reportContamination(id)
+
+    // Assert
+    assert.equal(savedCount, null) // save should not have been called
     assert.equal(survivor.infectedFlagCount, 5)
-    assert.equal(survivor.isInfected, true)
+  })
+
+  test('reportContamination - should throw error if survivor not found', async ({ assert }) => {
+    // Arrange
+    const id = 999
+
+    Survivor.findByOrFail = async () => {
+      throw new Error('Survivor not found')
+    }
+
+    // Act & Assert
+    await assert.rejects(
+      async () => await survivorService.reportContamination(id),
+      'Survivor not found'
+    )
   })
 })
