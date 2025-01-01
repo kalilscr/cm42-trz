@@ -5,7 +5,7 @@ import Survivor from '../../app/models/survivors.ts'
 import { ItemMessages } from '../../app/messages/item_message.ts'
 import { UpdateLocationInterface } from '../../app/interfaces/survivor_interface.ts'
 
-test.group('Survivor Service - Create', (group) => {
+test.group('Survivor Service - Create', () => {
   // group.beforeEach(() => {
   //   // Setup before each test, if needed
   // })

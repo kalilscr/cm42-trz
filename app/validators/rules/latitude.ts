@@ -3,7 +3,7 @@ import { FieldContext } from '@vinejs/vine/types'
 
 type Options = {}
 
-async function latitude(value: unknown, options: Options, field: FieldContext) {
+async function latitude(value: unknown, _options: Options, field: FieldContext) {
   /**
    * We do not want to deal with non-string
    * values. The "string" rule will handle the

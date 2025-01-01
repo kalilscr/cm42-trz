@@ -188,7 +188,7 @@ test.group('TradeService', (group) => {
 
     let updatedItems: any[] = []
     Item.findManyBy = async () => currentInventory
-    Item.updateOrCreateMany = async (keys: any[], items: any[]) => {
+    Item.updateOrCreateMany = async (_keys: any[], items: any[]) => {
       updatedItems = items
       return items
     }
